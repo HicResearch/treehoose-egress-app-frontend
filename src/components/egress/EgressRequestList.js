@@ -160,8 +160,14 @@ function EgressRequestList() {
         );
         setIsDownloadable(
             Number(selectedEgressRequest.download_count) < awsconfig.max_downloads_allowed &&
-                userRole === 'reviewer_1' &&
-                selectedEgressRequest.formattedStatus === 'RITAPPROVED',
+                ((userRole === 'reviewer_1' &&
+                    selectedEgressRequest.formattedStatus === 'RITAPPROVED' &&
+                    selectedEgressRequest.is_single_approval_enabled &&
+                    selectedEgressRequest.is_single_approval_enabled.toLowerCase() !== 'true') ||
+                    (userRole === 'reviewer_1' &&
+                        selectedEgressRequest.formattedStatus === 'IGAPPROVED' &&
+                        selectedEgressRequest.is_single_approval_enabled &&
+                        selectedEgressRequest.is_single_approval_enabled.toLowerCase() === 'true')),
         );
     }, [selectedEgressRequest, userRole, selectedEgressRequest.download_count]);
 
@@ -457,67 +463,70 @@ function EgressRequestList() {
                                 </MDBModalBody>
                             </AccordionDetails>
                         </Accordion>
-                        <Accordion defaultExpanded={userRole === 'reviewer_2'}>
-                            <AccordionSummary
-                                expandIcon={<ExpandMoreIcon />}
-                                aria-controls="panel1a-content"
-                                id="panel1a-header"
-                            >
-                                <Typography variant="h5" color="primary">
-                                    Research IT
-                                </Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                <MDBModalBody>
-                                    <div className="row">
-                                        <div className="col-md-4 ms-auto">
-                                            <MDBInput
-                                                label="Reviewed by"
-                                                id="reviewer_2"
-                                                type="text"
-                                                value={selectedEgressRequest.rit_reviewer_2_email}
-                                                disabled={true}
-                                                background
-                                            />
-                                        </div>
-                                        <div className="col-md-4 ms-auto">
-                                            <MDBInput
-                                                label="Date Reviewed"
-                                                id="reviewer_2_dt"
-                                                type="text"
-                                                value={selectedEgressRequest.rit_reviewer_2_dt}
-                                                disabled={true}
-                                                background
-                                            />
-                                        </div>
-                                        <div className="col-md-4 ms-auto">
-                                            <MDBInput
-                                                label="Decision"
-                                                id="reviewer_2_decision"
-                                                type="text"
-                                                value={selectedEgressRequest.rit_reviewer_2_decision}
-                                                disabled={true}
-                                                background
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="row">
-                                        <div className="col-md-12">
-                                            <MDBInput
-                                                label="Justification"
-                                                id="reviewer_2_justification"
-                                                type="textarea"
-                                                rows="4"
-                                                value={selectedEgressRequest.rit_reviewer_2_reason}
-                                                disabled={userRole !== 'reviewer_2' || !isEditable}
-                                                onChange={handleJustificationUpdate()}
-                                                outline
-                                            />
-                                        </div>
-                                    </div>
-                                </MDBModalBody>
-                            </AccordionDetails>
-                        </Accordion>
+                        {selectedEgressRequest.is_single_approval_enabled &&
+                            selectedEgressRequest.is_single_approval_enabled.toLowerCase() !== 'true' && (
+                                <Accordion defaultExpanded={userRole === 'reviewer_2'}>
+                                    <AccordionSummary
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls="panel1a-content"
+                                        id="panel1a-header"
+                                    >
+                                        <Typography variant="h5" color="primary">
+                                            Research IT
+                                        </Typography>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <MDBModalBody>
+                                            <div className="row">
+                                                <div className="col-md-4 ms-auto">
+                                                    <MDBInput
+                                                        label="Reviewed by"
+                                                        id="reviewer_2"
+                                                        type="text"
+                                                        value={selectedEgressRequest.rit_reviewer_2_email}
+                                                        disabled={true}
+                                                        background
+                                                    />
+                                                </div>
+                                                <div className="col-md-4 ms-auto">
+                                                    <MDBInput
+                                                        label="Date Reviewed"
+                                                        id="reviewer_2_dt"
+                                                        type="text"
+                                                        value={selectedEgressRequest.rit_reviewer_2_dt}
+                                                        disabled={true}
+                                                        background
+                                                    />
+                                                </div>
+                                                <div className="col-md-4 ms-auto">
+                                                    <MDBInput
+                                                        label="Decision"
+                                                        id="reviewer_2_decision"
+                                                        type="text"
+                                                        value={selectedEgressRequest.rit_reviewer_2_decision}
+                                                        disabled={true}
+                                                        background
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <div className="col-md-12">
+                                                    <MDBInput
+                                                        label="Justification"
+                                                        id="reviewer_2_justification"
+                                                        type="textarea"
+                                                        rows="4"
+                                                        value={selectedEgressRequest.rit_reviewer_2_reason}
+                                                        disabled={userRole !== 'reviewer_2' || !isEditable}
+                                                        onChange={handleJustificationUpdate()}
+                                                        outline
+                                                    />
+                                                </div>
+                                            </div>
+                                        </MDBModalBody>
+                                    </AccordionDetails>
+                                </Accordion>
+                            )}
                         <MDBModalFooter>
                             <Stack direction="row" spacing={2}>
                                 <Button
