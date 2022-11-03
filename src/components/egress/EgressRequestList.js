@@ -303,8 +303,8 @@ function EgressRequestList() {
                     <MDBContainer>
                         <MDBDataTableV5
                             hover
-                            entriesOptions={[5, 20, 25]}
-                            entries={5}
+                            entriesOptions={[25, 50, 100]}
+                            entries={25}
                             pagesAmount={4}
                             data={egressRequestList}
                             fullPagination
