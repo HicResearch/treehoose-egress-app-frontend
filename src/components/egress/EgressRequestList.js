@@ -83,6 +83,9 @@ function EgressRequestList() {
         const data = requestsApiResult.data.listRequests;
         const dataLength = data.length;
 
+        const ord = ['PROCESSING', 'IGAPPROVED', 'REJECTED'];
+        data.sort((a, b) => (ord.indexOf(a.egress_status) > ord.indexOf(b.egress_status) ? 1 : -1));
+
         if (dataLength !== 0) {
             for (let i = 0; i < dataLength; i += 1) {
                 // Format the status to be more user-friendly
