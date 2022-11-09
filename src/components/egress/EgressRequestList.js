@@ -62,9 +62,9 @@ function EgressRequestList() {
     const [confirmationOpen, setConfirmationOpen] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
 
-    const myStateRef = React.useRef(showModal);
-    const setMyState = (data) => {
-        myStateRef.current = data;
+    const showModalRef = React.useRef(showModal);
+    const setShowModalRef = (data) => {
+        showModalRef.current = data;
         setShowModal(data);
     };
 
@@ -76,7 +76,7 @@ function EgressRequestList() {
 
     // Toggles open/close for modal
     const toggleModal = (request) => {
-        console.log(`state in handler: ${myStateRef.current}`);
+        console.log(`state in handler: ${showModalRef.current}`);
 
         console.log(
             'toggleModal:',
@@ -85,7 +85,7 @@ function EgressRequestList() {
             showModal,
         );
 
-        setMyState(!myStateRef.current);
+        setShowModalRef(!showModalRef.current);
         // setShowModal(!showModal);
 
         if (request !== undefined) {
@@ -166,10 +166,6 @@ function EgressRequestList() {
     // Call on every state change
     useEffect(() => {
         console.log('useEffect (no params)');
-
-        // setInterval(function () {
-        //     console.log('myStateRef.current', myStateRef.current);
-        // }, 1000);
 
         getAllEgressRequests().then((data) =>
             // Set state using API data and imported headers
