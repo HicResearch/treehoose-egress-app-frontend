@@ -62,6 +62,12 @@ function EgressRequestList() {
     const [confirmationOpen, setConfirmationOpen] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
 
+    const myStateRef = React.useRef(showModal);
+    const setMyState = (data) => {
+        myStateRef.current = data;
+        setShowModal(data);
+    };
+
     // Transform backend status
     const formatStatus = (status) => {
         if (status === 'PROCESSING') return 'PENDING';
@@ -70,7 +76,18 @@ function EgressRequestList() {
 
     // Toggles open/close for modal
     const toggleModal = (request) => {
-        setShowModal(!showModal);
+        console.log(`state in handler: ${myStateRef.current}`);
+
+        console.log(
+            'toggleModal:',
+            // 'toggleModal: request: ', request,
+            'showModal:',
+            showModal,
+        );
+
+        setMyState(!myStateRef.current);
+        // setShowModal(!showModal);
+
         if (request !== undefined) {
             setSelectedEgressRequest(request);
             setJustification(request.reason);
@@ -148,6 +165,12 @@ function EgressRequestList() {
 
     // Call on every state change
     useEffect(() => {
+        console.log('useEffect (no params)');
+
+        // setInterval(function () {
+        //     console.log('myStateRef.current', myStateRef.current);
+        // }, 1000);
+
         getAllEgressRequests().then((data) =>
             // Set state using API data and imported headers
             setEgressRequestList({
@@ -161,6 +184,15 @@ function EgressRequestList() {
 
     // Effect to be invoked whenever an egress request is selected i.e. when modal is displayed
     useEffect(() => {
+        console.log(
+            'useEffect: selectedEgressRequest: ',
+            selectedEgressRequest,
+            'userRole:',
+            userRole,
+            'selectedEgressRequest.download_count:',
+            selectedEgressRequest.download_count,
+        );
+
         setIsEditable(
             (selectedEgressRequest.formattedStatus === 'PENDING' && userRole === 'reviewer_1') ||
                 (selectedEgressRequest.formattedStatus === 'IGAPPROVED' && userRole === 'reviewer_2'),
@@ -290,9 +322,27 @@ function EgressRequestList() {
 
     // Triggers update of request whenever a confirmation on the dialogue box is made
     useEffect(() => {
+        console.log('useEffect: confirmed:', confirmed);
+
         if (confirmed) {
             updateEgressRequest();
+
+            //reload the request table.
+            //for some reason performing this immediately doesn't seem to work, so let's test with a timeout to see if that makes any difference...
+            setTimeout(function () {
+                console.log('CALLING getAllEgressRequests()');
+
+                getAllEgressRequests().then((data) =>
+                    // Set state using API data and imported headers
+                    setEgressRequestList({
+                        columns: columnHeaders,
+                        rows: data,
+                    }),
+                );
+                //not sure why this is required...
+            }, 10000);
         }
+
         setConfirmed(false);
     }, [confirmed]);
 
