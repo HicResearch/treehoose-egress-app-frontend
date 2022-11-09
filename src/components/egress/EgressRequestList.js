@@ -24,6 +24,7 @@ import Snackbar from '@mui/material/Snackbar';
 import SnackbarContent from '@mui/material/SnackbarContent';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownloadRounded';
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
 import ThumbDownRoundedIcon from '@mui/icons-material/ThumbDownRounded';
@@ -180,14 +181,14 @@ function EgressRequestList() {
 
     // Effect to be invoked whenever an egress request is selected i.e. when modal is displayed
     useEffect(() => {
-        console.log(
-            'useEffect: selectedEgressRequest: ',
-            selectedEgressRequest,
-            'userRole:',
-            userRole,
-            'selectedEgressRequest.download_count:',
-            selectedEgressRequest.download_count,
-        );
+        // console.log(
+        //     'useEffect: selectedEgressRequest: ',
+        //     selectedEgressRequest,
+        //     'userRole:',
+        //     userRole,
+        //     'selectedEgressRequest.download_count:',
+        //     selectedEgressRequest.download_count,
+        // );
 
         setIsEditable(
             (selectedEgressRequest.formattedStatus === 'PENDING' && userRole === 'reviewer_1') ||
@@ -246,6 +247,8 @@ function EgressRequestList() {
 
     // Make API call to download API
     const handleDownload = async () => {
+        // console.log('selectedEgressRequest', selectedEgressRequest);
+
         setDownloading(true);
         const count = selectedEgressRequest.download_count == null ? 0 : selectedEgressRequest.download_count;
         const requestDetails = {
@@ -274,6 +277,35 @@ function EgressRequestList() {
             setNotificationMessage('Unable to download. Please try again or contact an administrator');
             setOpenNotification(true);
             setDownloading(false);
+        }
+    };
+
+    const handleCopyLink = async () => {
+        setDownloading(true);
+        const count = selectedEgressRequest.download_count == null ? 0 : selectedEgressRequest.download_count;
+        const requestDetails = {
+            egress_request_id: selectedEgressRequest.egress_request_id,
+            workspace_id: selectedEgressRequest.workspace_id,
+            download_count: count,
+        };
+
+        try {
+            const requestsApiResult = await API.graphql(graphqlOperation(downloadData, { request: requestDetails }));
+
+            if (requestsApiResult.data.downloadData !== null) {
+                const presignUrl = requestsApiResult.data.downloadData.presign_url;
+
+                navigator.clipboard.writeText(presignUrl);
+
+                setNotificationMessage('Link copied to clipboard');
+                setOpenNotification(true);
+                setDownloading(false);
+            } else {
+                setNotificationMessage('Download limit exceeded. Please contact an administrator');
+            }
+        } catch (err) {
+            setNotificationMessage('Unable to download. Please try again or contact an administrator');
+            setOpenNotification(true);
         }
     };
 
@@ -617,19 +649,25 @@ function EgressRequestList() {
                                     Reject
                                 </Button>
 
-                                {downloading ? (
-                                    <CircularProgress size={25} color="primary" />
-                                ) : (
-                                    <Button
-                                        color="primary"
-                                        variant="contained"
-                                        onClick={handleDownload}
-                                        disabled={!isDownloadable}
-                                        startIcon={<FileDownloadIcon />}
-                                    >
-                                        Download
-                                    </Button>
-                                )}
+                                <Button
+                                    color="primary"
+                                    variant="contained"
+                                    onClick={handleDownload}
+                                    disabled={!isDownloadable}
+                                    startIcon={<FileDownloadIcon />}
+                                >
+                                    Download
+                                </Button>
+                                <Button
+                                    color="primary"
+                                    variant="contained"
+                                    onClick={handleCopyLink}
+                                    disabled={!isDownloadable}
+                                    startIcon={<ContentCopyIcon />}
+                                >
+                                    Copy link
+                                </Button>
+                                {downloading && <CircularProgress size={25} color="primary" />}
                             </Stack>
                         </MDBModalFooter>
                     </form>
