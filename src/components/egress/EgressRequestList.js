@@ -77,17 +77,7 @@ function EgressRequestList() {
 
     // Toggles open/close for modal
     const toggleModal = (request) => {
-        console.log(`state in handler: ${showModalRef.current}`);
-
-        console.log(
-            'toggleModal:',
-            // 'toggleModal: request: ', request,
-            'showModal:',
-            showModal,
-        );
-
         setShowModalRef(!showModalRef.current);
-        // setShowModal(!showModal);
 
         if (request !== undefined) {
             setSelectedEgressRequest(request);
@@ -166,8 +156,6 @@ function EgressRequestList() {
 
     // Call on every state change
     useEffect(() => {
-        console.log('useEffect (no params)');
-
         getAllEgressRequests().then((data) =>
             // Set state using API data and imported headers
             setEgressRequestList({
@@ -181,15 +169,6 @@ function EgressRequestList() {
 
     // Effect to be invoked whenever an egress request is selected i.e. when modal is displayed
     useEffect(() => {
-        // console.log(
-        //     'useEffect: selectedEgressRequest: ',
-        //     selectedEgressRequest,
-        //     'userRole:',
-        //     userRole,
-        //     'selectedEgressRequest.download_count:',
-        //     selectedEgressRequest.download_count,
-        // );
-
         setIsEditable(
             (selectedEgressRequest.formattedStatus === 'PENDING' && userRole === 'reviewer_1') ||
                 (selectedEgressRequest.formattedStatus === 'IGAPPROVED' && userRole === 'reviewer_2'),
@@ -247,8 +226,6 @@ function EgressRequestList() {
 
     // Make API call to download API
     const handleDownload = async () => {
-        // console.log('selectedEgressRequest', selectedEgressRequest);
-
         setDownloading(true);
         const count = selectedEgressRequest.download_count == null ? 0 : selectedEgressRequest.download_count;
         const requestDetails = {
@@ -350,25 +327,17 @@ function EgressRequestList() {
 
     // Triggers update of request whenever a confirmation on the dialogue box is made
     useEffect(() => {
-        console.log('useEffect: confirmed:', confirmed);
-
         if (confirmed) {
             updateEgressRequest();
 
             //reload the request table.
-            //for some reason performing this immediately doesn't seem to work, so let's test with a timeout to see if that makes any difference...
-            setTimeout(function () {
-                console.log('CALLING getAllEgressRequests()');
-
-                getAllEgressRequests().then((data) =>
-                    // Set state using API data and imported headers
-                    setEgressRequestList({
-                        columns: columnHeaders,
-                        rows: data,
-                    }),
-                );
-                //not sure why this is required...
-            }, 10000);
+            getAllEgressRequests().then((data) =>
+                // Set state using API data and imported headers
+                setEgressRequestList({
+                    columns: columnHeaders,
+                    rows: data,
+                }),
+            );
         }
 
         setConfirmed(false);
