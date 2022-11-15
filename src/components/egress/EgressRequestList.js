@@ -330,7 +330,7 @@ function EgressRequestList() {
         if (confirmed) {
             updateEgressRequest();
 
-            //reload the request table.
+            // reload the request table.
             getAllEgressRequests().then((data) =>
                 // Set state using API data and imported headers
                 setEgressRequestList({
