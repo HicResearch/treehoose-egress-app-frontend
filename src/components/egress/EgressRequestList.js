@@ -330,14 +330,19 @@ function EgressRequestList() {
         if (confirmed) {
             updateEgressRequest();
 
+            toggleModal();
+
             // reload the request table.
-            getAllEgressRequests().then((data) =>
-                // Set state using API data and imported headers
-                setEgressRequestList({
-                    columns: columnHeaders,
-                    rows: data,
-                }),
-            );
+            // annoyingly this doesn't seem to work without a time delay
+            setTimeout(function () {
+                getAllEgressRequests().then((data) =>
+                    // Set state using API data and imported headers
+                    setEgressRequestList({
+                        columns: columnHeaders,
+                        rows: data,
+                    }),
+                );
+            }, 250);
         }
 
         setConfirmed(false);
