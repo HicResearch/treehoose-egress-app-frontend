@@ -318,6 +318,10 @@ function EgressRequestList() {
             try {
                 await API.graphql(graphqlOperation(updateRequest, { request: requestDetails }));
                 setNotificationMessage('Request saved successfully.');
+                if (selectedEgressRequest.is_single_approval_enabled) {
+                    if (decision === 'APPROVED') setIsDownloadable(true);
+                    setIsEditable(false);
+                }
             } catch (err) {
                 setNotificationMessage(err.errors[0].message);
             }
@@ -329,20 +333,6 @@ function EgressRequestList() {
     useEffect(() => {
         if (confirmed) {
             updateEgressRequest();
-
-            toggleModal();
-
-            // reload the request table.
-            // annoyingly this doesn't seem to work without a time delay
-            setTimeout(function () {
-                getAllEgressRequests().then((data) =>
-                    // Set state using API data and imported headers
-                    setEgressRequestList({
-                        columns: columnHeaders,
-                        rows: data,
-                    }),
-                );
-            }, 250);
         }
 
         setConfirmed(false);
