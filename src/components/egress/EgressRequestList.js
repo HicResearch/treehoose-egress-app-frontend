@@ -635,7 +635,7 @@ function EgressRequestList() {
                                         No, Take me back
                                     </Button>
                                     <Button onClick={handleConfirmationAgree} color="success" variant="contained">
-                                        Yes I&quot;m sure
+                                        Yes I&apos;m sure
                                     </Button>
                                 </Stack>
                             </DialogActions>
