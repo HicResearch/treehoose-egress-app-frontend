@@ -31,6 +31,8 @@ The front-end is a single page web application built with [React](https://reactj
 
 ## Egress Frontend Solution
 
+---
+
 The source code for the egress app frontend contains all the JavaScript, HTML, and GraphQL code required
  to build and deploy the application.
 
@@ -73,21 +75,25 @@ The *mutations.js* and *queries.js* scripts contain the GraphQL code, which the 
 >Note: This requires installation of Amplify CLI - [instructions](https://docs.amplify.aws/cli/start/install)
 
 1. Any changes to the GraphQL schema should be made inside
- *src/components/egress_app_backend/egress_backend/graphql/schema.graphql* in the backend.
-1. Remove any existing files inside *src/components/egress_app_frontend/src/graphql/schema.graphql*
+ *egress_backend/graphql/schema.graphql* in the backend.
+1. Remove any existing files inside *src/graphql/schema.graphql*
  in the frontend.
-1. Copy the *schema.graphql* from the backend to *src/components/egress_app_frontend/src/graphql/schema.graphql*
+1. Copy the *schema.graphql* from the backend to *src/graphql/schema.graphql*
  in the frontend.
-1. Run the command `amplify add codegen` in *src/components/egress_app_frontend/src/graphql* to generate
+1. Run the command `amplify add codegen` in *src/graphql* to generate
  the updated models
  for the frontend client to use.
 1. You should see updated *queries.js* and *mutations.js* files in the same location.
 
 ## Component Libraries
 
+---
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
+
+---
 
 In the project directory, you can run:
 
@@ -161,7 +167,77 @@ code using [eslint](https://eslint.org/), check code formatting
 using [prettier](https://prettier.io/) and
 `npm audit` & `npm outdated` to run node package manager audit.
 
+## Deployment Instructions
+
+---
+
+**Time to deploy**: Approximately 10 minutes
+
+- [ ] Download the source code repo using below command and change directory
+
+```console
+git clone https://gitlab.aws.dev/aws-wwps-uk-proserve-edu/trusted-research-environment/opensource/secure-egress-frontend.git
+cd secure-egress-frontend
+```
+
+Log in to the [AWS Management Console](https://console.aws.amazon.com/) using your **TRE Project 1 Prod**
+ account and Admin privileges.
+
+- [ ] Edit file *.env.local* in the `./secure-egress-frontend/` directory (Step 1C). Change the following required
+ parameters for the web application:
+
+|Parameter Name|Description|Location|
+|:-----------------|:-----------|:-------------|
+|REACT_APP_APPSYNC_API|Provide resource created in Step 4B - Egress API URL (e.g. "<https://.../graphql>) |Check [AWS CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/) *Outputs* tab for *Stack* "EgressAppBackend" and locate *AppSyncGraphQLURL* or go to [AWS AppSync APIs](https://eu-west-2.console.aws.amazon.com/appsync/home?region=eu-west-2#/apis) -> Select the API created -> *Settings* -> *API URL* |
+|REACT_APP_USER_POOL_CLIENT_ID|Provide resource created in Step 4B - App Client Id |Check [AWS CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/) *Outputs* tab for *Stack* "EgressAppBackend" and locate *CognitoAppClientId* or go to [Amazon Cognito Pools](https://eu-west-2.console.aws.amazon.com/cognito/users/?region=eu-west-2#) -> Select the User Pool created -> Under *General settings* -> *App clients* -> *App client id* |
+|REACT_APP_USER_POOL_ID|Provide resource created in Step 4B - User Pool Id |Check [AWS CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/) *Outputs* tab for *Stack* "EgressAppBackend" and locate *CognitoUserPoolId* or go to [Amazon Cognito Pools](https://eu-west-2.console.aws.amazon.com/cognito/users/?region=eu-west-2#) -> *General settings* -> *Pool Id* |
+|REACT_APP_USER_POOL_DOMAIN|Provide resource created in Step 4B - User Pool Domain Name (e.g. {cognito_userpool_domain}.auth.eu-west-2.amazoncognito.com) |Check [AWS CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/) *Outputs* tab for *Stack* "EgressAppBackend" and locate *CognitoUserPoolDomain* or go to [Amazon Cognito Pools](https://eu-west-2.console.aws.amazon.com/cognito/users/?region=eu-west-2#) -> Under *App integration* -> *Domain name* |
+|REACT_APP_REGION|Provide current AWS Region (i.e. eu-west-2)|NA|
+|REACT_APP_EGRESS_IG_ROLE|Provide same value as in cdk.json file edited in Step 4B for parameter *egress_reviewer_roles* - value 1|Check [AWS CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/) *Outputs* tab for *Stack* "EgressAppBackend" and locate *EgressReviewerRole1*|
+|REACT_APP_EGRESS_RIT_ROLE|Provide same value as in cdk.json file edited in Step 4B for parameter *egress_reviewer_roles* - value 2|Check [AWS CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/) *Outputs* tab for *Stack* "EgressAppBackend" and locate *EgressReviewerRole2*|
+|REACT_APP_MAX_DOWNLOADS_ALLOWED|Provide same value as in cdk.json file edited in Step 4B for parameter *max_downloads_allowed* |Check [AWS CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/) *Outputs* tab for *Stack* "EgressAppBackend" and locate *MaxDownloadsAllowed*|
+
+- [ ] Run the following commands to build the React frontend code:
+
+```bash
+cd ./secure-egress-frontend
+nvm install v16.15.0
+nvm use v16.15.0
+npm install
+npm run build
+```
+
+- [ ] Run the following commands to build the React app:
+
+```bash
+cd ./secure-egress-frontend/build
+zip -r ../build.zip ./
+```
+
+- [ ] Run the following commands to copy the React app to S3 and trigger an automatic
+ deployment to Amplify:
+
+```bash
+cd ./secure-egress-frontend/build
+aws s3 cp build.zip s3://{egress web app bucket created in Step 4B}
+```
+
+To find the egress web app bucket name, you can check
+the [AWS CloudFormation](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/)
+*Outputs* tab for *Stack* "EgressAppBackend" and locate *EgressWebAppS3BucketName*
+
+Verify the Amplify app has been updated automatically and the website is reachable:
+
+- [ ] Go to Service: [AWS Amplify](https://eu-west-2.console.aws.amazon.com/amplify/home?region=eu-west-2#/)
+- [ ] Select the app and branch created in Step 4B
+- [ ] Confirm the status in the app branch is: *Deployment successfully completed.*
+- [ ] Open the URL from *Domain* and confirm a login prompt appears like in the image below
+
+![Egress App Website](images/Status-EgressAppDeployed.png)
+
 ## Learn More
+
+---
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
