@@ -176,14 +176,14 @@ using [prettier](https://prettier.io/) and
 - [ ] Download the source code repo using below command and change directory
 
 ```console
-git clone https://gitlab.aws.dev/aws-wwps-uk-proserve-edu/trusted-research-environment/opensource/secure-egress-frontend.git
-cd secure-egress-frontend
+git clone https://github.com/HicResearch/treehoose-egress-app-frontend.git
+cd treehoose-egress-app-frontend
 ```
 
 Log in to the [AWS Management Console](https://console.aws.amazon.com/) using your **TRE Project 1 Prod**
  account and Admin privileges.
 
-- [ ] Edit file *.env.local* in the `./secure-egress-frontend/` directory (Step 1C). Change the following required
+- [ ] Edit file *.env.local* in the cloned directory (Step 1C). Change the following required
  parameters for the web application:
 
 |Parameter Name|Description|Location|
@@ -200,7 +200,6 @@ Log in to the [AWS Management Console](https://console.aws.amazon.com/) using yo
 - [ ] Run the following commands to build the React frontend code:
 
 ```bash
-cd ./secure-egress-frontend
 nvm install v16.15.0
 nvm use v16.15.0
 npm install
@@ -210,15 +209,15 @@ npm run build
 - [ ] Run the following commands to build the React app:
 
 ```bash
-cd ./secure-egress-frontend/build
+cd ./build
 zip -r ../build.zip ./
+cd ..
 ```
 
 - [ ] Run the following commands to copy the React app to S3 and trigger an automatic
  deployment to Amplify:
 
 ```bash
-cd ./secure-egress-frontend/build
 aws s3 cp build.zip s3://{egress web app bucket created in Step 4B}
 ```
 
