@@ -24,7 +24,6 @@ import Snackbar from '@mui/material/Snackbar';
 import SnackbarContent from '@mui/material/SnackbarContent';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownloadRounded';
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
 import ThumbDownRoundedIcon from '@mui/icons-material/ThumbDownRounded';
@@ -63,12 +62,6 @@ function EgressRequestList() {
     const [confirmationOpen, setConfirmationOpen] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
 
-    const showModalRef = React.useRef(showModal);
-    const setShowModalRef = (data) => {
-        showModalRef.current = data;
-        setShowModal(data);
-    };
-
     // Transform backend status
     const formatStatus = (status) => {
         if (status === 'PROCESSING') return 'PENDING';
@@ -77,8 +70,7 @@ function EgressRequestList() {
 
     // Toggles open/close for modal
     const toggleModal = (request) => {
-        setShowModalRef(!showModalRef.current);
-
+        setShowModal(!showModal);
         if (request !== undefined) {
             setSelectedEgressRequest(request);
             setJustification(request.reason);
@@ -257,35 +249,6 @@ function EgressRequestList() {
         }
     };
 
-    const handleCopyLink = async () => {
-        setDownloading(true);
-        const count = selectedEgressRequest.download_count == null ? 0 : selectedEgressRequest.download_count;
-        const requestDetails = {
-            egress_request_id: selectedEgressRequest.egress_request_id,
-            workspace_id: selectedEgressRequest.workspace_id,
-            download_count: count,
-        };
-
-        try {
-            const requestsApiResult = await API.graphql(graphqlOperation(downloadData, { request: requestDetails }));
-
-            if (requestsApiResult.data.downloadData !== null) {
-                const presignUrl = requestsApiResult.data.downloadData.presign_url;
-
-                navigator.clipboard.writeText(presignUrl);
-
-                setNotificationMessage('Link copied to clipboard');
-                setOpenNotification(true);
-                setDownloading(false);
-            } else {
-                setNotificationMessage('Download limit exceeded. Please contact an administrator');
-            }
-        } catch (err) {
-            setNotificationMessage('Unable to download. Please try again or contact an administrator');
-            setOpenNotification(true);
-        }
-    };
-
     // Make API call to submit egress request review
     const updateEgressRequest = async () => {
         let requestDetails = {};
@@ -318,10 +281,6 @@ function EgressRequestList() {
             try {
                 await API.graphql(graphqlOperation(updateRequest, { request: requestDetails }));
                 setNotificationMessage('Request saved successfully.');
-                if (selectedEgressRequest.is_single_approval_enabled) {
-                    if (decision === 'APPROVED') setIsDownloadable(true);
-                    setIsEditable(false);
-                }
             } catch (err) {
                 setNotificationMessage(err.errors[0].message);
             }
@@ -334,7 +293,6 @@ function EgressRequestList() {
         if (confirmed) {
             updateEgressRequest();
         }
-
         setConfirmed(false);
     }, [confirmed]);
 
@@ -613,25 +571,19 @@ function EgressRequestList() {
                                     Reject
                                 </Button>
 
-                                <Button
-                                    color="primary"
-                                    variant="contained"
-                                    onClick={handleDownload}
-                                    disabled={!isDownloadable}
-                                    startIcon={<FileDownloadIcon />}
-                                >
-                                    Download
-                                </Button>
-                                <Button
-                                    color="primary"
-                                    variant="contained"
-                                    onClick={handleCopyLink}
-                                    disabled={!isDownloadable}
-                                    startIcon={<ContentCopyIcon />}
-                                >
-                                    Copy link
-                                </Button>
-                                {downloading && <CircularProgress size={25} color="primary" />}
+                                {downloading ? (
+                                    <CircularProgress size={25} color="primary" />
+                                ) : (
+                                    <Button
+                                        color="primary"
+                                        variant="contained"
+                                        onClick={handleDownload}
+                                        disabled={!isDownloadable}
+                                        startIcon={<FileDownloadIcon />}
+                                    >
+                                        Download
+                                    </Button>
+                                )}
                             </Stack>
                         </MDBModalFooter>
                     </form>
