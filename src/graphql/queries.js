@@ -32,6 +32,7 @@ export const listRequests = /* GraphQL */ `
             current_reviewer_group
             s3_staging_object_metadata_version
             download_count
+            is_single_approval_enabled
         }
     }
 `;
