@@ -83,6 +83,12 @@ function EgressRequestList() {
         const data = requestsApiResult.data.listRequests;
         const dataLength = data.length;
 
+        // Sort by prioritised egress_status by default
+        const ord = ['PROCESSING', 'IGAPPROVED', 'REJECTED'];
+        data.sort((a, b) => (ord.indexOf(a.egress_status) > ord.indexOf(b.egress_status) ? 1 : -1));
+
+        // Allow linking directly to request by using #id in url
+        const hash = window.location.hash ? window.location.hash.replace('#', '') : '';
         if (dataLength !== 0) {
             for (let i = 0; i < dataLength; i += 1) {
                 // Format the status to be more user-friendly
@@ -100,6 +106,7 @@ function EgressRequestList() {
                         View
                     </Button>
                 );
+                if (hash === request.egress_request_id) toggleModal(request);
             }
         } else {
             setNotificationMessage('No available requests to view');
