@@ -1,4 +1,4 @@
-// (c) 2022 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
+// (c) 2023 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
 //
 // This AWS Content is provided subject to the terms of the AWS Customer Agreement
 // available at http://aws.amazon.com/agreement or other written agreement between
@@ -25,7 +25,7 @@ const columnHeaders = [
     },
     {
         label: 'Date',
-        field: 'requested_dt',
+        field: 'updated_dt',
         sort: 'asc',
         width: 70,
     },
