@@ -1,4 +1,4 @@
-// (c) 2022 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
+// (c) 2023 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
 //
 // This AWS Content is provided subject to the terms of the AWS Customer Agreement
 // available at http://aws.amazon.com/agreement or other written agreement between
@@ -49,7 +49,8 @@ function EgressRequestList() {
 
     // Initialise states
     const [showModal, setShowModal] = useState(false);
-    const [selectedEgressRequest, setSelectedEgressRequest] = useState([]);
+    const [requestFromHash, setRequestFromHash] = useState(true);
+    const [selectedEgressRequest, setSelectedEgressRequest] = useState({});
     const [justification, setJustification] = useState('');
     const [decision, setDecision] = useState('');
     const [isEditable, setIsEditable] = useState(false);
@@ -71,7 +72,7 @@ function EgressRequestList() {
     // Toggles open/close for modal
     const toggleModal = (request) => {
         setShowModal(!showModal);
-        if (request !== undefined) {
+        if (request?.egress_request_id !== undefined) {
             setSelectedEgressRequest(request);
             setJustification(request.reason);
         }
@@ -83,11 +84,12 @@ function EgressRequestList() {
         const data = requestsApiResult.data.listRequests;
         const dataLength = data.length;
 
+        // Sort by prioritised egress_status by default
         const ord = ['PROCESSING', 'IGAPPROVED', 'REJECTED'];
         data.sort((a, b) => (ord.indexOf(a.egress_status) > ord.indexOf(b.egress_status) ? 1 : -1));
 
+        // Allow linking directly to request by using #id in url
         const hash = window.location.hash ? window.location.hash.replace('#', '') : '';
-
         if (dataLength !== 0) {
             for (let i = 0; i < dataLength; i += 1) {
                 // Format the status to be more user-friendly
@@ -95,13 +97,21 @@ function EgressRequestList() {
                 const request = data[i];
                 // Insert button into each row of json for datatable
                 data[i].review = (
-                    <Button color="primary" variant="contained" onClick={() => toggleModal(request)}>
-                        {' '}
+                    <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={() => {
+                            toggleModal(request);
+                        }}
+                    >
                         View
                     </Button>
                 );
-
-                if (hash === request.egress_request_id) toggleModal(request);
+                // Only load request the first time the page is loaded
+                if (requestFromHash && hash === request.egress_request_id) {
+                    toggleModal(request);
+                    setRequestFromHash(false);
+                }
             }
         } else {
             setNotificationMessage('No available requests to view');
@@ -148,16 +158,22 @@ function EgressRequestList() {
 
     // Call on every state change
     useEffect(() => {
-        getAllEgressRequests().then((data) =>
-            // Set state using API data and imported headers
-            setEgressRequestList({
-                columns: columnHeaders,
-                rows: data,
-            }),
-        );
         getUserGroup();
         getUserDetails();
     }, []);
+
+    // Call when the modal is closed
+    useEffect(() => {
+        if (!showModal) {
+            getAllEgressRequests().then((data) =>
+                // Set state using API data and imported headers
+                setEgressRequestList({
+                    columns: columnHeaders,
+                    rows: data,
+                }),
+            );
+        }
+    }, [showModal]);
 
     // Effect to be invoked whenever an egress request is selected i.e. when modal is displayed
     useEffect(() => {
@@ -280,6 +296,18 @@ function EgressRequestList() {
             }
             try {
                 await API.graphql(graphqlOperation(updateRequest, { request: requestDetails }));
+                const requestsApiResult = await API.graphql(graphqlOperation(listRequests));
+                const data = requestsApiResult.data.listRequests;
+                const dataLength = data.length;
+                if (dataLength !== 0) {
+                    for (let i = 0; i < dataLength; i += 1) {
+                        data[i].formattedStatus = formatStatus(data[i].egress_status);
+                        const request = data[i];
+                        if (selectedEgressRequest.egress_request_id === request.egress_request_id) {
+                            setSelectedEgressRequest(request);
+                        }
+                    }
+                }
                 setNotificationMessage('Request saved successfully.');
             } catch (err) {
                 setNotificationMessage(err.errors[0].message);
@@ -338,7 +366,7 @@ function EgressRequestList() {
                                         label="Egress Request ID"
                                         id="egress_request_id"
                                         type="text"
-                                        value={selectedEgressRequest.egress_request_id}
+                                        value={selectedEgressRequest.egress_request_id || ''}
                                         background
                                     />
                                 </div>
@@ -347,7 +375,7 @@ function EgressRequestList() {
                                         label="Status"
                                         id="status"
                                         type="text"
-                                        value={selectedEgressRequest.formattedStatus}
+                                        value={selectedEgressRequest.formattedStatus || ''}
                                         background
                                     />
                                 </div>
@@ -356,7 +384,7 @@ function EgressRequestList() {
                                         label="Project ID"
                                         id="project_id"
                                         type="text"
-                                        value={selectedEgressRequest.project_id}
+                                        value={selectedEgressRequest.project_id || ''}
                                         background
                                     />
                                 </div>
@@ -365,7 +393,7 @@ function EgressRequestList() {
                                         label="Workspace ID"
                                         id="workspace_id"
                                         type="text"
-                                        value={selectedEgressRequest.workspace_id}
+                                        value={selectedEgressRequest.workspace_id || ''}
                                         background
                                     />
                                 </div>
@@ -376,16 +404,16 @@ function EgressRequestList() {
                                         label="Requested By"
                                         id="requested_by"
                                         type="text"
-                                        value={selectedEgressRequest.requested_by}
+                                        value={selectedEgressRequest.requested_by || ''}
                                         background
                                     />
                                 </div>
                                 <div className="col-md-3 ms-auto">
                                     <MDBInput
-                                        label="Date Requested"
+                                        label="Workspace Creation Date"
                                         id="requested_dt"
                                         type="text"
-                                        value={selectedEgressRequest.requested_dt}
+                                        value={selectedEgressRequest.requested_dt || ''}
                                         background
                                     />
                                 </div>
@@ -394,16 +422,16 @@ function EgressRequestList() {
                                         label="Updated By"
                                         id="updated_by"
                                         type="text"
-                                        value={selectedEgressRequest.updated_by}
+                                        value={selectedEgressRequest.updated_by || ''}
                                         background
                                     />
                                 </div>
                                 <div className="col-md-3 ms-auto">
                                     <MDBInput
-                                        label="Date Updated"
+                                        label="Date Requested"
                                         id="updated_dt"
                                         type="text"
-                                        value={selectedEgressRequest.updated_dt}
+                                        value={selectedEgressRequest.updated_dt || ''}
                                         background
                                     />
                                 </div>
@@ -427,7 +455,7 @@ function EgressRequestList() {
                                                 label="Reviewed by"
                                                 id="reviewer_1"
                                                 type="text"
-                                                value={selectedEgressRequest.ig_reviewer_1_email}
+                                                value={selectedEgressRequest.ig_reviewer_1_email || ''}
                                                 disabled={true}
                                                 background
                                             />
@@ -437,7 +465,7 @@ function EgressRequestList() {
                                                 label="Date Reviewed"
                                                 id="reviewer_1_dt"
                                                 type="text"
-                                                value={selectedEgressRequest.ig_reviewer_1_dt}
+                                                value={selectedEgressRequest.ig_reviewer_1_dt || ''}
                                                 disabled={true}
                                                 background
                                             />
@@ -447,7 +475,7 @@ function EgressRequestList() {
                                                 label="Decision"
                                                 id="reviewer_1_decision"
                                                 type="text"
-                                                value={selectedEgressRequest.ig_reviewer_1_decision}
+                                                value={selectedEgressRequest.ig_reviewer_1_decision || ''}
                                                 disabled={true}
                                                 background
                                             />
@@ -460,7 +488,7 @@ function EgressRequestList() {
                                                 id="reviewer_1_justification"
                                                 type="textarea"
                                                 rows="4"
-                                                value={selectedEgressRequest.ig_reviewer_1_reason}
+                                                value={selectedEgressRequest.ig_reviewer_1_reason || undefined}
                                                 onChange={handleJustificationUpdate()}
                                                 disabled={userRole !== 'reviewer_1' || !isEditable}
                                                 outline
@@ -490,7 +518,7 @@ function EgressRequestList() {
                                                         label="Reviewed by"
                                                         id="reviewer_2"
                                                         type="text"
-                                                        value={selectedEgressRequest.rit_reviewer_2_email}
+                                                        value={selectedEgressRequest.rit_reviewer_2_email || ''}
                                                         disabled={true}
                                                         background
                                                     />
@@ -500,7 +528,7 @@ function EgressRequestList() {
                                                         label="Date Reviewed"
                                                         id="reviewer_2_dt"
                                                         type="text"
-                                                        value={selectedEgressRequest.rit_reviewer_2_dt}
+                                                        value={selectedEgressRequest.rit_reviewer_2_dt || ''}
                                                         disabled={true}
                                                         background
                                                     />
@@ -510,7 +538,7 @@ function EgressRequestList() {
                                                         label="Decision"
                                                         id="reviewer_2_decision"
                                                         type="text"
-                                                        value={selectedEgressRequest.rit_reviewer_2_decision}
+                                                        value={selectedEgressRequest.rit_reviewer_2_decision || ''}
                                                         disabled={true}
                                                         background
                                                     />
@@ -523,7 +551,7 @@ function EgressRequestList() {
                                                         id="reviewer_2_justification"
                                                         type="textarea"
                                                         rows="4"
-                                                        value={selectedEgressRequest.rit_reviewer_2_reason}
+                                                        value={selectedEgressRequest.rit_reviewer_2_reason || undefined}
                                                         disabled={userRole !== 'reviewer_2' || !isEditable}
                                                         onChange={handleJustificationUpdate()}
                                                         outline
