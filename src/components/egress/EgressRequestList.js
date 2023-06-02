@@ -49,6 +49,7 @@ function EgressRequestList() {
 
     // Initialise states
     const [showModal, setShowModal] = useState(false);
+    const [requestFromHash, setRequestFromHash] = useState(true);
     const [selectedEgressRequest, setSelectedEgressRequest] = useState({});
     const [justification, setJustification] = useState('');
     const [decision, setDecision] = useState('');
@@ -106,7 +107,11 @@ function EgressRequestList() {
                         View
                     </Button>
                 );
-                if (hash === request.egress_request_id) toggleModal(request);
+                // Only load request the first time the page is loaded
+                if (requestFromHash && hash === request.egress_request_id) {
+                    toggleModal(request);
+                    setRequestFromHash(false);
+                }
             }
         } else {
             setNotificationMessage('No available requests to view');
