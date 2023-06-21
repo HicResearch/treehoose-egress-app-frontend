@@ -18,6 +18,7 @@ import {
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Snackbar from '@mui/material/Snackbar';
@@ -55,6 +56,7 @@ function EgressRequestList() {
     const [decision, setDecision] = useState('');
     const [isEditable, setIsEditable] = useState(false);
     const [isDownloadable, setIsDownloadable] = useState(false);
+    const [fatalErrorMessages, setfatalErrorMessages] = useState([]);
     const [openNotification, setOpenNotification] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState('');
     const [userRole, setUserRole] = useState('');
@@ -78,9 +80,19 @@ function EgressRequestList() {
         }
     };
 
+    const appendFatalErrorMessage = (errorMessage) => {
+        setfatalErrorMessages((current) => [...current, errorMessage]);
+    };
+
     // Fetch all egress requests
     const getAllEgressRequests = async () => {
-        const requestsApiResult = await API.graphql(graphqlOperation(listRequests));
+        let requestsApiResult;
+        try {
+            requestsApiResult = await API.graphql(graphqlOperation(listRequests));
+        } catch (err) {
+            appendFatalErrorMessage(err.errors[0].message);
+            return [];
+        }
         const data = requestsApiResult.data.listRequests;
         const dataLength = data.length;
 
@@ -114,8 +126,7 @@ function EgressRequestList() {
                 }
             }
         } else {
-            setNotificationMessage('No available requests to view');
-            setOpenNotification(true);
+            appendFatalErrorMessage('No available requests to view');
         }
         return data;
     };
@@ -127,8 +138,7 @@ function EgressRequestList() {
         } else if (groups.includes(awsconfig.egress_rit_role)) {
             setUserRole('reviewer_2');
         } else {
-            setNotificationMessage('User role cannot be determined. Please contact an administrator');
-            setOpenNotification(true);
+            appendFatalErrorMessage('User role cannot be determined. Please contact an administrator');
         }
     };
 
@@ -140,8 +150,7 @@ function EgressRequestList() {
         if (cognitoGroups) {
             determineRole(cognitoGroups);
         } else {
-            setNotificationMessage('You are not authorised to access this application');
-            setOpenNotification(true);
+            appendFatalErrorMessage('You are not authorised to access this application');
         }
     };
 
@@ -326,6 +335,9 @@ function EgressRequestList() {
 
     return (
         <>
+            {fatalErrorMessages.map((m) => (
+                <Alert severity="error">{m}</Alert>
+            ))}
             <div>
                 <div
                     style={{
