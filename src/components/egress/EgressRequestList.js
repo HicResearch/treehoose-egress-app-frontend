@@ -25,6 +25,7 @@ import Snackbar from '@mui/material/Snackbar';
 import SnackbarContent from '@mui/material/SnackbarContent';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownloadRounded';
 import ThumbUpRoundedIcon from '@mui/icons-material/ThumbUpRounded';
 import ThumbDownRoundedIcon from '@mui/icons-material/ThumbDownRounded';
@@ -242,7 +243,7 @@ function EgressRequestList() {
     };
 
     // Make API call to download API
-    const handleDownload = async () => {
+    const handleDownloadOrCopy = async (copyToClipboard) => {
         setDownloading(true);
         const count = selectedEgressRequest.download_count == null ? 0 : selectedEgressRequest.download_count;
         const requestDetails = {
@@ -257,11 +258,17 @@ function EgressRequestList() {
             if (requestsApiResult.data.downloadData !== null) {
                 const presignUrl = requestsApiResult.data.downloadData.presign_url;
 
-                // Open presign_url link to download file
-                const downloadLink = document.createElement('a');
-                downloadLink.download = 'egress_data.zip';
-                downloadLink.href = presignUrl;
-                downloadLink.click();
+                if (copyToClipboard) {
+                    navigator.clipboard.writeText(presignUrl);
+                    setNotificationMessage('Link copied to clipboard');
+                    setOpenNotification(true);
+                } else {
+                    // Open presign_url link to download file
+                    const downloadLink = document.createElement('a');
+                    downloadLink.download = 'egress_data.zip';
+                    downloadLink.href = presignUrl;
+                    downloadLink.click();
+                }
                 selectedEgressRequest.download_count = Number(selectedEgressRequest.download_count) + 1;
                 setDownloading(false);
             } else {
@@ -272,6 +279,15 @@ function EgressRequestList() {
             setOpenNotification(true);
             setDownloading(false);
         }
+    };
+
+    // Make API call to download API
+    const handleDownload = async () => {
+        await handleDownloadOrCopy(false);
+    };
+
+    const handleCopyLink = async () => {
+        await handleDownloadOrCopy(true);
     };
 
     // Make API call to submit egress request review
@@ -622,6 +638,19 @@ function EgressRequestList() {
                                         startIcon={<FileDownloadIcon />}
                                     >
                                         Download
+                                    </Button>
+                                )}
+                                {downloading ? (
+                                    <CircularProgress size={25} color="primary" />
+                                ) : (
+                                    <Button
+                                        color="primary"
+                                        variant="contained"
+                                        onClick={handleCopyLink}
+                                        disabled={!isDownloadable}
+                                        startIcon={<ContentCopyIcon />}
+                                    >
+                                        Copy link
                                     </Button>
                                 )}
                             </Stack>
