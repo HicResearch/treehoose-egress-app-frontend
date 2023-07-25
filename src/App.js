@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react';
 import './style/App.css';
-import Amplify, { Auth, Hub } from 'aws-amplify';
+import { Amplify, Auth, Hub } from 'aws-amplify';
 import { AmplifyAuthenticator, AmplifySignIn } from '@aws-amplify/ui-react';
 import { Button } from '@mui/material';
 import EgressRequestList from './components/egress/EgressRequestList';
