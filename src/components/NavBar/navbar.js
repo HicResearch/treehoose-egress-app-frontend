@@ -13,6 +13,7 @@ import { Auth } from 'aws-amplify';
 import { Button } from '@mui/material';
 import './navbar.css';
 import awsconfig from '../../aws-config';
+import Version from '../Version/version';
 
 function NavBar() {
     const [user, setUser] = useState();
@@ -42,7 +43,10 @@ function NavBar() {
             <AppBar position="static" color="primary">
                 <Toolbar>
                     <Grid container>
-                        <Grid item xs={7}>
+                        <Grid item xs={2}>
+                            <Version />
+                        </Grid>
+                        <Grid item xs={5}>
                             <Typography variant="h5" align="right" color="inherit" style={{ flexGrow: 1 }}>
                                 TRE Secure Data Egress
                             </Typography>
