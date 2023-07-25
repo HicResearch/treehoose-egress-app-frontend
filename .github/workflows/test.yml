@@ -1,0 +1,32 @@
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+name: Test
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint and security checks
+        run: npm run pipeline
+
+      - name: Build
+        run: npm run build
+
+      # There are no tests
+      # - run: npm test
