@@ -334,6 +334,10 @@ function EgressRequestList() {
                     }
                 }
                 setNotificationMessage('Request saved successfully.');
+                if (selectedEgressRequest.is_single_approval_enabled) {
+                    if (decision === 'APPROVED') setIsDownloadable(true);
+                    setIsEditable(false);
+                }
             } catch (err) {
                 setNotificationMessage(err.errors[0].message);
             }
@@ -627,32 +631,25 @@ function EgressRequestList() {
                                     Reject
                                 </Button>
 
-                                {downloading ? (
-                                    <CircularProgress size={25} color="primary" />
-                                ) : (
-                                    <Button
-                                        color="primary"
-                                        variant="contained"
-                                        onClick={handleDownload}
-                                        disabled={!isDownloadable}
-                                        startIcon={<FileDownloadIcon />}
-                                    >
-                                        Download
-                                    </Button>
-                                )}
-                                {downloading ? (
-                                    <CircularProgress size={25} color="primary" />
-                                ) : (
-                                    <Button
-                                        color="primary"
-                                        variant="contained"
-                                        onClick={handleCopyLink}
-                                        disabled={!isDownloadable}
-                                        startIcon={<ContentCopyIcon />}
-                                    >
-                                        Copy link
-                                    </Button>
-                                )}
+                                <Button
+                                    color="primary"
+                                    variant="contained"
+                                    onClick={handleDownload}
+                                    disabled={!isDownloadable}
+                                    startIcon={<FileDownloadIcon />}
+                                >
+                                    Download
+                                </Button>
+                                <Button
+                                    color="primary"
+                                    variant="contained"
+                                    onClick={handleCopyLink}
+                                    disabled={!isDownloadable}
+                                    startIcon={<ContentCopyIcon />}
+                                >
+                                    Copy link
+                                </Button>
+                                {downloading && <CircularProgress size={25} color="primary" />}
                             </Stack>
                         </MDBModalFooter>
                     </form>
