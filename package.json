@@ -24,9 +24,10 @@
     },
     "scripts": {
         "start:local": "env-cmd -f .env.local react-scripts start",
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "test": "react-scripts test",
+        "update-version": "node git-version.js",
+        "start": "npm run update-version && react-scripts start",
+        "build": "npm run update-version && react-scripts build",
+        "test": "npm run update-version && react-scripts test",
         "eject": "react-scripts eject",
         "security-tests": "npm run security:outdated && npm run security:audit",
         "security:audit": "npm audit || true",
